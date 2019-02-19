@@ -1,0 +1,1 @@
+void OscConfig(void);

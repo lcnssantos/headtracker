@@ -1,0 +1,12 @@
+void UART_Init(const unsigned long int baudrate);
+char UART_Check_Overrun();
+void UART_Write(char data);
+void putch(char data);
+char UART_TX_Empty();
+void UART_Write_Text(char *text);
+char UART_Data_Ready();
+char UART_Read();
+void UART_Read_Text_Bytes(char *Output, unsigned int length);
+void UART_Read_Text(char * output);
+void UART_Read_Text_Until(char *Output, char * until, unsigned int maxLength);
+void UART_Flush();

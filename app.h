@@ -1,0 +1,15 @@
+void InitTimerCount();
+void InitInterrupt();
+void InitIO();
+void Battery_Status();
+void Led_Blink2();
+void Task_Init();
+void Comm_Init();
+void Send_Version();
+void Frame_Update();
+void Wifi_Normal_Init();
+void MPU_DMP_Init();
+void configMode();
+void reset();
+void GetResetCause();
+void printResetCause();
