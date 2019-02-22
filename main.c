@@ -75,20 +75,14 @@ void main(void)
         MPU_DMP_Init();
         /* */
     }
-    else {
-        /*CONFIG_IP.PORT_NUMBER = 857;
-        strcpy(CONFIG_IP.IP_ADDR, "192.168.2.103");
-        strcpy(CONFIG_WIFI.WIFI_SSID, "CASA_1");
-        strcpy(CONFIG_WIFI.WIFI_PASS, "llwigp62");
-        Wifi_Normal_Init();*/
+    else 
+    {
         MPU_DMP_Init();
         for(char i = 0; i < 50; i++)
         {
             LED_BLUE = !LED_BLUE;
             __delay_ms(30);
         }
-        /*configModeStatus = _TRUE_;
-        configMode();*/
     }
 
 
