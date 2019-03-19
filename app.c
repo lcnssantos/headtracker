@@ -1,8 +1,21 @@
+/*
+This file is the main core of the code. All application code is here
+*/
+
+
 #include "app.h"
 #include "main.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "eeprom.h"
+
+
+/* 
+@purpose: Setup the System Timer with High Interrupt Priority with 1ms overflow period
+@parameters: void
+@return: void
+@version: 0.1
+*/
 
 void
 InitTimerCount()
@@ -20,6 +33,14 @@ InitTimerCount()
     Timer.IntProc = TimerCount.Update;
     Timer.Init(&Timer);
 }
+
+/*
+@purpose: Setup the interrupts of CPU
+@parameters: void
+@return: void
+@version: 0.1
+*/
+
 
 void
 InitInterrupt()
@@ -57,24 +78,45 @@ InitIO()
 
 }
 
+
+/*
+@purpose: Send the Battery Status Package
+@parameters: void
+@return: void
+@version: 0.1
+*/
+
+
 void
 Battery_Status()
 {
+    /* buffer for debug */
     char buffer[50];
 
+    /* the package */
     char BatteryPackage[4];
+    
     unsigned short adcValue;
+    
+    /* Get the ADC value */
     adcValue = ADC_Read(2);
 
-    if (!configModeStatus) {
+    /* if the device isn't in the configuration mode */
+    if (!configModeStatus) 
+    {
+        /* send the adc value for debug serial port */
         sprintf(buffer, "Battery ADC %u\n", adcValue);
         Debug.Send(buffer);
+        /* */
 
+        /* mount the package */
         BatteryPackage[0] = 0x55;
         BatteryPackage[1] = adcValue;
         BatteryPackage[2] = adcValue >> 8;
         BatteryPackage[3] = BatteryPackage[0] + BatteryPackage[1] + BatteryPackage[2];
-
+        /* */
+        
+        /* send the package via wifi */
         ESP_Send_Transparent_Data(BatteryPackage, 4);
     }
 }
