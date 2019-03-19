@@ -7,6 +7,13 @@
 
 #include "main.h"
 
+/*
+@purpose: This function is used to setup the ADC 
+@parameters: void
+@return: void
+@version: 0.1
+*/
+
 void ADC_Setup()
 {
     ADCS0 = 0;
@@ -19,6 +26,14 @@ void ADC_Setup()
     NVCFG1 = 0;
     ADFM = 1;
 }
+
+
+/*
+@purpose: This function is used to read a specific ADC channel
+@parameters: channel to be readed
+@return: ADC value
+@version: 0.1
+*/
 
 unsigned short ADC_Read(unsigned char channel)
 {
