@@ -60,6 +60,13 @@ InitInterrupt()
     INTCON3bits.INT1IP = 1;
 }
 
+/*
+@purpose: Configure IO pins
+@parameters: void
+@return: void
+@version: 0.1
+*/
+
 void
 InitIO()
 {
@@ -121,12 +128,26 @@ Battery_Status()
     }
 }
 
+/*
+@purpose: Blink Led - unused
+@parameters: void
+@return: void
+@version: 0.1
+*/
+
 void
 Led_Blink2()
 {
     //PORTDbits.RD1 = !PORTDbits.RD1;
 }
 
+
+/*
+@purpose: Configure the tasks for the Task Schedule
+@parameters: void
+@return: void
+@verson: V0.1
+*/
 void
 Task_Init()
 {
@@ -153,12 +174,26 @@ Task_Init()
     TaskScheduler(ConfigMode);
 }
 
+/*
+@purpose: Start Serial Port
+@parameters: void
+@return: void
+@version: V0.1
+*/
+
 void
 Comm_Init()
 {
     Debug.Send("Init Serial Port at 57600bps\r");
     UART_Init(57600);
 }
+
+/*
+@purpose: Send the Version to debug
+@parameters: void
+@return: void
+@version: V0.1
+*/
 
 void
 Send_Version()
@@ -168,150 +203,291 @@ Send_Version()
     Debug.Send("\n\r");
 }
 
+/*
+@purpose: Update Frame of device
+@parameters: void
+@return: void
+@version: V0.1
+*/
 void
 Frame_Update()
 {
+    /* buffer for debug */
     char buffer[50];
+    
+    /* fifo buffer count */
     char fifocount = 0;
+    
+    /* fifo buffer */
     char fifobuffer[42];
+    
+    /* the quartenion */
     int quartenion[4];
 
-    if (MPU_Sensor.DataReady) {
+    /* if MPU6050 data is available */
+    if (MPU_Sensor.DataReady) 
+    {
+        /* Get MPU6050 Interrupt Status */
         MPU_Sensor.IntStatus = MPU_Get_Int_Status(mpuAddr);
-        if (MPU_Sensor.IntStatus & 0x10) {
+        
+        /* if FIFO Overflow occurred reset the FIFO */
+        if (MPU_Sensor.IntStatus & 0x10) 
+        {
             MPU_Reset_FIFO(mpuAddr);
             Debug.Send("Fifo Overflow\r");
         }
-        else if (MPU_Sensor.IntStatus & 0x02) {
-            while (fifocount < MPU_Sensor.PacketSize) {
+        
+        /* else If data is available */
+        else if (MPU_Sensor.IntStatus & 0x02) 
+        {
+            /* wait for a complete package in fifo buffer */
+            while (fifocount < MPU_Sensor.PacketSize) 
+            {
                 fifocount = MPU_Get_FIFO_Count(mpuAddr);
             }
 
+            /* adjust fifocount to the actual fifo size*/
             fifocount = fifocount - MPU_Sensor.PacketSize;
+            
+            /* read the fifo package */
             MPU_Get_Fifo_Bytes(mpuAddr, fifobuffer, MPU_Sensor.PacketSize);
+            
+            /* send the fifo package via WiFi*/
             ESP_Send_Transparent_Data(fifobuffer, MPU_Sensor.PacketSize);
         }
-        else {
+        
+        /* else print the Int status in the debug */
+        else 
+        {
             sprintf(buffer, "Int Status: 0x%2X\r", MPU_Sensor.IntStatus);
             Debug.Send(buffer);
         }
+        /* clear dataready flag */
         MPU_Sensor.DataReady = _FALSE_;
     }
 }
 
+
+/*
+@purpose: Start ESP8266 in client mode
+@parameters: void
+@return: void
+@version: V0.1
+*/
+
 void
 Wifi_Normal_Init()
 {
-    //EEPROM_Get_Object(&CONFIG_IP,sizeof(IP_CONFIG),ADDR_IP);
+
+    /* if isn't in the configuration mode, test ESP8266 Startup */
     if (!configModeStatus)
         while (!ESP_Test_Startup() && !configModeStatus) {
             __delay_ms(2000);
         }
+    
+    /* if isn't in the configuration mode, put the ESP8266 in the Station mode */
     if (!configModeStatus)
         while (!ESP_Wifi_Setup(ESP8266_STATION_MODE) && !configModeStatus) {
             __delay_ms(2000);
         }
+    
+    /* if isn't in the configuration mode, connect to the network seted in the EEPROM */
     if (!configModeStatus)
         while (!ESP_Connect_Ap(CONFIG_WIFI.WIFI_SSID, CONFIG_WIFI.WIFI_PASS) && !configModeStatus) {
             __delay_ms(2000);
         }
+    
+    /* if isn't in the configuration mode, get TCP IP status */
     if (!configModeStatus)
         while (!ESP_TCPIP_Status() && !configModeStatus) {
             __delay_ms(2000);
         }
+    
+    /* if isn't in the configuration mode, connect to the UDP server seted in the EEPROM */
     if (!configModeStatus)
         while (!ESP_TCPIP_Connect("UDP", CONFIG_IP.IP_ADDR, CONFIG_IP.PORT_NUMBER) && !configModeStatus) {
             __delay_ms(2000);
         }
+    
+    /* if isn't in the configuration mode, put the ESP8266 in the transparent mode */
     if (!configModeStatus)
         while (!ESP_Transparent_Mode() && !configModeStatus) {
             __delay_ms(2000);
         }
+    
+    /* if isn't in the configuration mode, start the transparent transmission */
     if (!configModeStatus)
         while (!ESP_Start_Transparent_Transmission() && !configModeStatus) {
             __delay_ms(2000);
         }
+    
+    /* send "WiFi ready" to de debug */
     Debug.Send("Wifi Ready\r");
 }
+
+
+/*
+@purpose: Start MPU6050 Digital Motion Processor
+@parameters: void
+@return: void
+@version: V0.1
+*/
+
 
 void
 MPU_DMP_Init()
 {
+    /* Buffer for debug */
     char buffer[10];
+    
+    /* Start I2C Port as Master */
     I2C_Master_Init();
 
+    /* Turn on the MPU6050 */
     MPU_CH_DIRECTION = 0;
     MPU_CH = 1;
 
 
+    /* Start the MPU6050 class */
     MPU_Construct(&MPU_Sensor);
+    
+    /* Start the initial Configuration of MPU6050 */
     MPU_Sensor.Init();
+    
+    /* Start Digital Motion Processor */
     MPU_Sensor.DMPStatus = DMP_Init(&MPU_Sensor);
 
-    if (MPU_Sensor.DMPStatus == _DMP_OK_) {
+    /* If Digital Motion Processor Startup is ok */
+    if (MPU_Sensor.DMPStatus == _DMP_OK_) 
+    {
+        /* Set the Offsets of Gyroscope */
         MPU_Set_X_Gyro_Offset(BIAS_MPU.Gx, mpuAddr);
         MPU_Set_Y_Gyro_Offset(BIAS_MPU.Gy, mpuAddr);
         MPU_Set_Z_Gyro_Offset(BIAS_MPU.Gz, mpuAddr);
-        //MPU_Set_Z_Accel_Offset(1788,mpuAddr);
+        /* */
 
+        /* Enable the Digital Motion Processor */
         MPU_Set_DMP_Enabled(mpuAddr, _TRUE_);
+        /* Enable the FIFO Buffer */
         MPU_Set_FIFO_Enabled(mpuAddr, _TRUE_);
+        /* Get Interrupt Status */
         MPU_Sensor.IntStatus = MPU_Get_Int_Status(mpuAddr);
+        /* Start the Tasks */
         Task_Init();
+        /* Send "DMP Ready to the debug */
         Debug.Send("DMP Ready\r");
     }
-    else {
+    /* if Digital Motion processor startup failed */
+    else 
+    {
+        /* Send the status to the debug serial port */
         Debug.Send("DMP Init failed\r");
         sprintf(buffer, "STS: %d\r", MPU_Sensor.DMPStatus);
         Debug.Send(buffer);
+        /* reset the cpu */
         reset();
     }
 }
 
+
+/*
+@purpose: Configuration Mode: Input of WiFi network parameters as well as UDP server parameters
+@parameters: void
+@return: void
+@version: V0.1
+*/
+
 void
 configMode()
 {
+    /* loop control variables */
     char i, j;
+    
+    /* configuration buffers */
     char config[128];
     char configFinal[128];
+    
+    /* */
+    
+    /* general purpose pointer */
     char * ponteiro;
+    
+    /* variable to address the ESP8266 connection */
     char link;
-    if (configModeStatus) {
+    
+    /* if in the configuration mode */
+    if (configModeStatus) 
+    {
+        /* turn off the MPU6050 */
         MPU_CH = 0;
+        
+        /* str to debug */
         Debug.Send("Starting Configurator...\r");
-        ClearAnyBuffer(config, 50);
+        
+        /* Clear the Config buffer*/
+        ClearAnyBuffer(config, 128);
+        
+        /* Setup the WiFi Acess point name */
         strcpy(config, "HeadTracker ");
         strcat(config, _VERSION_);
+        
+        /* Clear the WiFi Buffer */
         ClearAnyBuffer(Wifi_Buffer, SIZE_OF_WIFI_BUFFER);
+        
+        /* turn off the system clock */
         INTCONbits.TMR0IE = 0;
+        
+        /* reset the ESP8266 */
         __delay_ms(500);
+        
         ESP_Reset();
+        
         __delay_ms(500);
+        
+        /* */
+        
+        /* Test the startup of ESP8266 */
         while (!ESP_Test_Startup()) {
             __delay_ms(1000);
         }
+        
+        /* Set ESP8266 as Acess Point */
         while (!ESP_Wifi_Setup(ESP8266_AP_MODE)) {
             __delay_ms(1000);
         }
+        
+        /* Setup the network */
         while (!ESP_AP_Setup(config, "headtracker", 5, ESP8266_ENC_WPA2_PSK)) {
             __delay_ms(1000);
         }
+        
+        /* Accept multiple connections */
         while (!ESP_TCPIP_Mux(ESP8266_MULTIPLE_CONNECTION)) {
             __delay_ms(1000);
         }
+        
+        /* Start server at port 80 */
         while (!ESP_Start_Server(80)) {
             __delay_ms(1000);
         }
-        if (CONFIG_WIFI.ValidData != 0xAA) {
+        
+        /* If WiFi configuration is not valid, turn on the green led */
+        if (CONFIG_WIFI.ValidData != 0xAA) 
+        {
             LED_GREEN = 1;
         }
 
+        /* if server configuration is not valid, turn on the red led */
         if (CONFIG_IP.ValidData != 0xAA) {
             LED_RED = 1;
         }
 
+        /* clear the wifi buffer */
         ClearAnyBuffer(Wifi_Buffer, SIZE_OF_WIFI_BUFFER);
+        /* send Configuration Ready */
         Debug.Send("Configurator ready\r");
+        
+        /* while device is in the configuration mode */
         while (configModeStatus) {
             //PORTD = 255;
             if (strstr(Wifi_Buffer, "+IPD")) {
