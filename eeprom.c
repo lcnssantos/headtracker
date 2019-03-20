@@ -1,6 +1,13 @@
 #include "main.h"
 #include "eeprom.h"
 
+/* 
+@purpose: Write a byte to specific address of the EEPROM
+@parameters: address: Address of the memory; data: The byte to be writed
+@return: void;
+@version: V0.1
+*/
+
 void EEPROM_Write_Byte(unsigned char address, unsigned char data)
 {
     EEADR = address;
@@ -20,6 +27,13 @@ void EEPROM_Write_Byte(unsigned char address, unsigned char data)
     EEDATA = 0;
 }
 
+/*
+@purpose: Read a specific address of EEPROM
+@parameters: address: address of memory
+@return: The byte readed
+@version: V0.1
+*/
+
 char EEPROM_Read_Byte(unsigned char address)
 {
     EEADR = address;
@@ -31,6 +45,13 @@ char EEPROM_Read_Byte(unsigned char address)
     return EEDATA;
 }
 
+/*
+@purpose: Put a object to an address of the EEPROM
+@paramaters: object: pointer to the object, length: the length of the object, address: the address of memory
+@return: void
+@version: V0.1
+*/
+
 void EEPROM_Put_Object(char * object, unsigned char length, unsigned int address)
 {
     unsigned int i;
@@ -40,6 +61,12 @@ void EEPROM_Put_Object(char * object, unsigned char length, unsigned int address
     }
 }
 
+/*
+@purpose: Get a object from specific address of the EEPROM
+@paramaters: object: pointer to the object, length: the length of the object, address: the address of memory
+@return: void
+@version: V0.1
+*/
 void EEPROM_Get_Object(char * object, unsigned char length, unsigned int address)
 {
     unsigned int i;
