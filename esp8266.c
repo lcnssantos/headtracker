@@ -3,6 +3,7 @@
 
 //#define ESP_DEBUG
 
+/* Pre-compile directives to activate/desactivate ESP Debug */
 #ifdef ESP_DEBUG
 #define _DEBUG Debug.Send
 #define _FORMAT sprintf
@@ -11,17 +12,43 @@
 #define _FORMAT
 #endif
 
+/* */
+
+/*
+@purpose: Send an AT command to ESP8266
+@parameters: str: The AT command
+@return: void
+@version: V0.1
+*/
+
 void AT_Command(char * str)
 {
+    /* buffer for debug */
     char buffer[50];
+    
+    /* debug the actual at command */
     _FORMAT(buffer, "Comando AT: %s\r", str);
     _DEBUG(buffer);
+    /* */
+    
+    /* Clear the wifi buffer and return Wifi_Buffer_pos to 0 */
     ClearAnyBuffer(Wifi_Buffer, SIZE_OF_WIFI_BUFFER);
     Wifi_Buffer_Pos = 0;
+    
+    /* change printf to AT_MODE */
     printfMode = AT_MODE;
+    /* send the AT command */
     printf("%s%c%c", str, 0x0D, 0x0A);
 }
 
+
+/*
+@purpose: Clear any buffer
+@paramaters: str: a pointer to the buffer; len: length of the buffer
+@return: void
+@version: V0.1
+
+*/
 void ClearAnyBuffer(char * str, int len)
 {
     int i = 0;
@@ -30,45 +57,92 @@ void ClearAnyBuffer(char * str, int len)
     }
 }
 
+/*
+@purpose: Wait AT Answer
+@paramaters: void
+@return: a pointer to a string representing the result of the AT command
+@verson: V0.1
+*/
 char * AT_Wait_Response()
 {
+    /* loop control variables */
     unsigned int i = 0, j;
     char lastPos = 0;
+    
+    /* array to available answers of at commands */
     unsigned const char* strings[7] = {"FAIL", ">", "OK", "no change", "Linked", "ERROR", "SEND OK"};
+    
+    /* get the actual time in order to get timeout */
     unsigned long last = TimerCount.miliseconds;
-    while (1) {
-        for (j = 0; j < 7; j++) {
-            if (strstr(Wifi_Buffer, strings[j])) {
+    
+    /* infinite loop */
+    while (1)
+    {
+        /* check if the Wifi Buffer there an AT answer */
+        for (j = 0; j < 7; j++) 
+        {
+            if (strstr(Wifi_Buffer, strings[j])) 
+            {
+                /* Flush the UART port */
                 UART_Flush();
+                /* return the answer */
                 return strings[j];
             }
         }
-        if (TimerCount.miliseconds - last > 5000) {
+        
+        /* if the time inside the infinite loop is greater than 5000 ms, return error (Timeout)*/
+        if (TimerCount.miliseconds - last > 5000) 
+        {
             return "ERROR";
         }
-        if (i == SIZE_OF_WIFI_BUFFER) {
+        
+        /* possible Wifi Buffer overflow, return error*/
+        if (i == SIZE_OF_WIFI_BUFFER) 
+        {
             return "ERROR";
         }
-        if (Wifi_Buffer_Pos != lastPos) {
+        
+        /* Get last position of the Wifi Buffer*/
+        if (Wifi_Buffer_Pos != lastPos) 
+        {
             lastPos = Wifi_Buffer_Pos;
             i++;
         }
     }
 }
 
+
+/*
+@purpose: Test ESP8266
+@paramaters: void
+@return: 1 for ESP8266 OK and 0 for error 
+@version: V0.1
+*/
+
+
 char ESP_Test_Startup()
 {
     char ReturnValue;
 
+    /* send the AT command */
     AT_Command("AT");
-    if (strcmp(AT_Wait_Response(), "OK") == 0) {
+    
+    /* if the answer is "OK", return 1*/
+    if (strcmp(AT_Wait_Response(), "OK") == 0) 
+    {
         ReturnValue = 1;
     }
-    else {
+    /* else return 0 */
+    else 
+    {
         ReturnValue = 0;
     }
+    
+    /* Debug ESP8266 OK */
     Debug.Send("ESP8266 OK\r");
+    /* clear wifi buffer */
     ClearAnyBuffer(Wifi_Buffer, SIZE_OF_WIFI_BUFFER);
+    /* return the value */
     return ReturnValue;
 }
 
