@@ -488,23 +488,36 @@ configMode()
         Debug.Send("Configurator ready\r");
         
         /* while device is in the configuration mode */
-        while (configModeStatus) {
-            //PORTD = 255;
-            if (strstr(Wifi_Buffer, "+IPD")) {
+        
+        while (configModeStatus) 
+        {
+            /* check if there is new data on WiFi Buffer */
+            if (strstr(Wifi_Buffer, "+IPD"))
+            {
+                /* get the address of the connection */
                 ponteiro = strstr(Wifi_Buffer, "+IPD");
                 link = ponteiro[5];
-                if (link >= '0' && link <= '3') {
-                    if (strstr(Wifi_Buffer, "ip.html")) {
-
+                /* */
+                
+                /* If link is valid */
+                if (link >= '0' && link <= '3') 
+                {
+                    /* if the page is ip.html */
+                    if (strstr(Wifi_Buffer, "ip.html")) 
+                    {
+                        /* debug IP */
                         Debug.Send("IP\r");
+                        
+                        /* get ip address */
                         ponteiro = strstr(Wifi_Buffer, "?");
                         ponteiro = ponteiro + 1;
-                        for (i = 0; *ponteiro != 'H'; i++) {
-                            /*   config[i] = * ponteiro;
-                               ponteiro++;*/
+                        
+                        for (i = 0; *ponteiro != 'H'; i++) 
+                        {
                             config[i] = *ponteiro;
                             ponteiro++;
                         }
+                        
                         Debug.Send(config);
                         Debug.Send("\r");
 
@@ -533,9 +546,16 @@ configMode()
                         ESP_TCPIP_Close(link - 48);
                         configModeStatus = _FALSE_;
                         Debug.Send("Gravou IP\r");
+                        /* */
                     }
-                    else if (strstr(Wifi_Buffer, "wifi.html")) {
+                    
+                    /* if the page is wifi.html */
+                    else if (strstr(Wifi_Buffer, "wifi.html")) 
+                    {
+                        /* debug wifi */
                         Debug.Send("Wifi\r");
+                        
+                        /* get the wifi configuration */
                         ClearAnyBuffer(config, 128);
                         ClearAnyBuffer(configFinal, 128);
                         ClearAnyBuffer(CONFIG_WIFI.WIFI_PASS, sizeof (CONFIG_WIFI.WIFI_PASS));
@@ -543,19 +563,23 @@ configMode()
                         while (!strstr(Wifi_Buffer, "SSID"));
                         ponteiro = strstr(Wifi_Buffer, "?");
                         ponteiro = ponteiro + 1;
-                        for (i = 0; *ponteiro != 'H'; i++) {
+                        for (i = 0; *ponteiro != 'H'; i++) 
+                        {
                             config[i] = *ponteiro;
                             ponteiro++;
                         }
                         ponteiro = 0x00;
 
 
-                        for (i = 0, j = 0; j < 128; j++) {
-                            if (config[j] != '%') {
+                        for (i = 0, j = 0; j < 128; j++) 
+                        {
+                            if (config[j] != '%') 
+                            {
                                 configFinal[i] = config[j];
                                 i++;
                             }
-                            else {
+                            else 
+                            {
                                 ponteiro = &config[j];
                                 ponteiro++;
                                 char c[2];
@@ -594,31 +618,62 @@ configMode()
                         ESP_TCPIP_Close(link - 48);
                         configModeStatus = _FALSE_;
                         Debug.Send("Gravou Wifi\r");
+                        
+                        /* */
                     }
-                    else {
+                    
+                    /* else send the configuration page */
+                    else 
+                    {
+                        /* send the data */
                         ESP_TCPIP_Send(link, page);
+                        
+                        /* wait the transmission */
                         __delay_ms(500);
+                        
+                        /* close the connection (browser load complete)*/
                         ESP_TCPIP_Close(link - 48);
                     }
                 }
+                /* invalid link */
                 else
+                {
                     Debug.Send("Invalid Link!");
-                for (i = 0; i < 4; i++) {
+                }
+                
+                /* close all connections */
+                for (i = 0; i < 4; i++) 
+                {
                     ESP_TCPIP_Close(i);
                 }
             }
         }
+        /* reset the cpu */
         reset();
     }
 }
 
+/*
+@purpose: Reset the CPU
+@parameters: void
+@return: void
+@version: V0.1
+*/
 void
 reset()
 {
+    /* debug */
     Debug.Send("Reseta\r");
+    /* asm instruction reset */
     asm("RESET");
 }
 
+/*
+@purpose: Get Last reset cause and put it to resetCause Global variable
+@parameters: void
+@return: void
+@version: V0.1
+*/
 void
 GetResetCause()
 {
@@ -633,6 +688,12 @@ GetResetCause()
     RCON = 0;
 }
 
+/*
+@purpose: Print last reset cause
+@parameters: void
+@return: void
+@version: V0.1
+*/
 void
 printResetCause()
 {
