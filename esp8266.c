@@ -146,6 +146,13 @@ char ESP_Test_Startup()
     return ReturnValue;
 }
 
+/* 
+@purpose: Reset the ESP8266
+@parameters: void
+@return: void
+@version: V0.1
+*/
+
 void ESP_Reset()
 {
     ESP_CH_DIRECTION = 0;
@@ -156,6 +163,16 @@ void ESP_Reset()
     ESP8266_RESET = 1;
 }
 
+/* 
+@purpose: Setup the Wifi mode of ESP8266
+@parameters: mode -> the mode of Wifi operation:
+                    1: Station Mode
+                    2: Software Acess Point Mode
+                    3: Station + Software Acess Point
+                    
+@return: 1 in case of successful operation; 0 if fail
+@version: V0.1
+*/
 char ESP_Wifi_Setup(char mode)
 {
     char ReturnValue;
@@ -171,6 +188,13 @@ char ESP_Wifi_Setup(char mode)
     ClearAnyBuffer(Wifi_Buffer, SIZE_OF_WIFI_BUFFER);
     return ReturnValue;
 }
+
+/*
+@purpose: Connect to a WiFi network
+@parameters: ssid: the ssid of the network, pass: the pass of the network
+@return: 1 in case of successful conection or 0 in case of connection failed
+@version: V0.1
+*/
 
 char ESP_Connect_Ap(char* ssid, char * pass)
 {
@@ -190,6 +214,13 @@ char ESP_Connect_Ap(char* ssid, char * pass)
     return ReturnValue;
 }
 
+/* 
+@purpose: Get the TCPIP status
+@paramaters: void
+@return: 1 in case of AT command ok and 0 in case of error
+@version: V0.1
+*/
+
 char ESP_TCPIP_Status()
 {
     AT_Command("AT+CIPSTATUS");
@@ -203,6 +234,13 @@ char ESP_TCPIP_Status()
     ClearAnyBuffer(Wifi_Buffer, SIZE_OF_WIFI_BUFFER);
     return ReturnValue;
 }
+
+/*
+@purpose: Connect to a TCP IP Server using TCP or UDP protocol
+@parameters: type - a string: "TCP" or "UDP"; ip: the ip address of server, port: the port number
+@return: 1 in case of successful connection or 0 in case of connection failure
+@version: V0.1
+*/
 
 char ESP_TCPIP_Connect(char * type, char * ip, unsigned int port)
 {
@@ -222,6 +260,13 @@ char ESP_TCPIP_Connect(char * type, char * ip, unsigned int port)
     return ReturnValue;
 }
 
+/*
+@purpose: Put the ESP8266 in the transparent mode
+@parameters: void
+@return: 1 in case of successful operation or 0 in case of failure
+@version: V0.1
+*/
+
 char ESP_Transparent_Mode()
 {
     AT_Command("AT+CIPMODE=1");
@@ -235,6 +280,13 @@ char ESP_Transparent_Mode()
     ClearAnyBuffer(Wifi_Buffer, SIZE_OF_WIFI_BUFFER);
     return ReturnValue;
 }
+
+/*
+@purpose: Start the transparent transmission
+@parameters: void
+@return: Always return 1 in this version
+@version: V0.1
+*/
 
 char ESP_Start_Transparent_Transmission()
 {
@@ -254,6 +306,13 @@ char ESP_Start_Transparent_Transmission()
     return ReturnValue;
 }
 
+/*
+@purpose: Send data via transparent mode
+@parameters: s a pointer to the buffer, length, the size of the buffer
+@return: void
+@version: V0.1
+*/
+
 void ESP_Send_Transparent_Data(char * s, char length)
 {
     char i = 0;
@@ -262,6 +321,16 @@ void ESP_Send_Transparent_Data(char * s, char length)
     }
 }
 
+/*
+@purpose: Setup Acess Point Parameters
+@parameters: ssid: a string with the SSID information; pass a string to the password of the network; channel: the channel number; enc the type of encryptation
+    enc: 0 - OPEN
+         2 - WPA_PSK
+         3 - WPA2_PSK
+         4 - WPA_WPA2_PSK
+@return: 1 in case of successful operation, 0 in case of failure
+@version: V0.1
+*/
 char ESP_AP_Setup(char * ssid, char * pass, char channel, char enc)
 {
     char ReturnValue;
@@ -278,6 +347,12 @@ char ESP_AP_Setup(char * ssid, char * pass, char channel, char enc)
     return ReturnValue;
 }
 
+/*
+@purpose: Start a TCP server in a defined port
+@parameters: port: the port number
+@return: 1 in case of server started, 0 in case of failure
+@version: V0.1
+*/
 char ESP_Start_Server(char port)
 {
     char ReturnValue;
@@ -294,6 +369,14 @@ char ESP_Start_Server(char port)
     return ReturnValue;
 }
 
+/*
+@purpose: Setup the multiple connections of ESP8266
+@parameters: mode:
+            0 - single connection
+            1 - multiple connections
+@return: 1 in case of successful operation, 0 in case of failure
+@version: V0.1
+*/
 char ESP_TCPIP_Mux(char mode)
 {
     char ReturnValue;
@@ -309,6 +392,13 @@ char ESP_TCPIP_Mux(char mode)
     ClearAnyBuffer(Wifi_Buffer, SIZE_OF_WIFI_BUFFER);
     return ReturnValue;
 }
+
+/*
+@purpose:  Send a data via TCP IP
+@parameters: link: the link ID of connection; string: a string with the data
+@return: always return 1 in this version
+@version: V0.1
+*/
 
 char ESP_TCPIP_Send(char link, char * string)
 {
@@ -328,9 +418,15 @@ char ESP_TCPIP_Send(char link, char * string)
     return ReturnValue;
 }
 
+/*
+@purpose: Close a connection defined by the linkId
+@parameters: linkId - the link id of the connection
+@return: Always return 1 in this version
+@version: V0.1
+*/
 char ESP_TCPIP_Close(char linkId)
 {
-    char ReturnValue;
+    char ReturnValue = 1;
     char at[50];
     char * response;
     sprintf(at, "AT+CIPCLOSE=%d", linkId);
@@ -340,6 +436,12 @@ char ESP_TCPIP_Close(char linkId)
     return ReturnValue;
 }
 
+/*
+@purpose: List stations conencted to the ESP8266 in the AP mode
+@parameters: void
+@return: 1 in case of successful operation or 0 in case of error
+@version: V0.1
+*/
 char ESP_List_Stations()
 {
     char ReturnValue;
@@ -357,7 +459,13 @@ char ESP_List_Stations()
     return ReturnValue;
 }
 
-char ESP_Clear_Wifi_Buffer()
+/*
+@purpose: Clear the Wifi Buffer
+@paramaeters: void
+@return: void
+@version: V0.1
+*/
+void ESP_Clear_Wifi_Buffer()
 {
     Wifi_Buffer_Pos = 0;
     ClearAnyBuffer(Wifi_Buffer, SIZE_OF_WIFI_BUFFER);
