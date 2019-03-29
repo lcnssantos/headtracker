@@ -1,6 +1,12 @@
 #include "soft_uart.h"
 #include "main.h"
 
+/*
+@purpose: Software UART constructor
+@parameters: Port -> Pointer to the Soft_Serial class
+@return: void
+@version: v0.1
+*/
 void Soft_UART_Construct(Soft_Serial * Port)
 {
     SOFT_TXD_DIRECTION = 0;
@@ -8,12 +14,25 @@ void Soft_UART_Construct(Soft_Serial * Port)
     Port->Send = Soft_Debug_Send;
 }
 
+/*
+@purpose: Start the Soft UART 
+@parameters: void
+@return: void
+@version: v0.1
+*/
+
 void Soft_UART_Init()
 {
     SOFT_TXD_DIRECTION = 0;
     SOFT_TXD = 1;
 }
 
+/* 
+@purpose: Send a data via Soft Serial
+@parameters: data-> the byte to be sent
+@return: void
+@version: v0.1
+*/
 void Soft_UART_Write(char data)
 {
     char i;
@@ -32,6 +51,12 @@ void Soft_UART_Write(char data)
     INTCONbits.PEIE = 1;
 }
 
+/*
+@purpose: Send a string via Soft serial
+@parameters: string -> a pointer to the string
+@return: void
+@version: v0.1
+*/
 void Soft_Debug_Send(char * string)
 {
     printfMode = DEBUG_MODE;
