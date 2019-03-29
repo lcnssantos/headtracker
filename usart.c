@@ -2,6 +2,13 @@
 #include "usart.h"
 #include "soft_uart.h"
 
+/*
+@purpose: Start the Hardware UART of processor
+@parameters: baudrate -> the number of bits per second of transmission
+@return: void
+@version: V0.1
+
+*/
 void UART_Init(const unsigned long int baudrate)
 {
     unsigned int x;
@@ -24,6 +31,13 @@ void UART_Init(const unsigned long int baudrate)
     TRISCbits.RC7 = 1;
 }
 
+/*
+@purpose: Check if there is a overrun and reset the HW UART
+@parameters: void
+@return: 1 if OVERRUN or 0 if isn't.
+@version: V0.1
+
+*/
 char UART_Check_Overrun()
 {
     if (RCSTAbits.OERR) {
@@ -35,12 +49,25 @@ char UART_Check_Overrun()
     else return 0;
 }
 
+/* 
+@purpose: write a byte to the hardware uart
+@parameters: data -> the data to be sent
+@return: void
+@version: V0.1
+*/
 void UART_Write(unsigned char data)
 {
     while (!TXSTA1bits.TRMT1);
     TXREG = data;
 }
 
+/*
+@purpose: implementation of putch in order to use printf
+@parameters: data-> data to be sent
+@return: void
+@version: V0.1
+
+*/
 void putch(char data)
 {
     if (printfMode == DEBUG_MODE) {
@@ -51,11 +78,23 @@ void putch(char data)
     }
 }
 
+/*
+@purpose: check if TX buffer is empty
+@parameters: void
+@return: 1 if is empty or 0 if isn't empty
+@version: V0.1
+*/
 unsigned char UART_TX_Empty()
 {
     return TXSTA1bits.TRMT1;
 }
 
+/*
+@purpose: Write a string to the Hardware UART
+@parameters: text -> pointer to the string
+@return: void
+@version: V0.1
+*/
 void UART_Write_Text(char *text)
 {
     int i;
@@ -63,12 +102,24 @@ void UART_Write_Text(char *text)
         UART_Write(text[i]);
 }
 
+/*
+@purpose: Check if there is data available on RX buffer
+@parameters: void
+@return: 1 if data is available or 0 if data isn't avaialble
+@version: V0.1
+*/
 char UART_Data_Ready()
 {
     return (PIR1 & 0x20) == 0x20;
     //return PIR1bits.RCIF;
 }
 
+/*
+@purpose: Standby for Data on RX buffer of serial and return it
+@parameters: void
+@return: the data receveid
+@version: V0.1
+*/
 char UART_Read()
 {
     UART_Check_Overrun();
@@ -76,6 +127,12 @@ char UART_Read()
     return RCREG;
 }
 
+/*
+@purpose: Read a number of bytes
+@parameters: Output -> a pointer where the data will be stored; length -> the number of bytes to received
+@return: void
+@version: V0.1
+*/
 void UART_Read_Text_Bytes(char *Output, unsigned int length)
 {
     unsigned int i;
@@ -83,6 +140,9 @@ void UART_Read_Text_Bytes(char *Output, unsigned int length)
         Output[i] = UART_Read();
 }
 
+/*
+Disregard this function, isn't used and can cause processor bug
+*/
 void UART_Read_Text(char * output)
 {
     unsigned long int i;
@@ -94,6 +154,9 @@ void UART_Read_Text(char * output)
     }
 }
 
+/*
+Disregard this function, isn't used and can cause processor bug
+*/
 void UART_Read_Text_Until(char *Output, char * until, unsigned int maxLength)
 {
     unsigned int i;
@@ -104,6 +167,12 @@ void UART_Read_Text_Until(char *Output, char * until, unsigned int maxLength)
     }
 }
 
+/*
+@purpose: Flus the uart
+@parameters: void
+@return: void
+@version: V0.1
+*/
 void UART_Flush()
 {
     char temp;
